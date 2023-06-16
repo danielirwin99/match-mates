@@ -8,9 +8,8 @@ namespace API.Controllers
 // THIS IS OUR CRUD CONTROLLER OF THE USER
 // ---------------------------------------
 {
-    [ApiController]
-    [Route("api/[controller]")] // /api/users
-    public class UsersController : ControllerBase
+    // Base is coming from our APIController file
+    public class UsersController : BaseApiController
     {
         private readonly DataContext _context;
         public UsersController(DataContext context)
