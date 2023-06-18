@@ -1,5 +1,6 @@
 using API.Data;
 using API.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,8 @@ namespace API.Controllers
 // THIS IS OUR CRUD CONTROLLER OF THE USER
 // ---------------------------------------
 {
+    // Only allowed to get Users when they are authorised to do so
+    [Authorize]
     // Base is coming from our APIController file
     public class UsersController : BaseApiController
     {

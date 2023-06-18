@@ -1,10 +1,10 @@
+
 using System.ComponentModel.DataAnnotations;
 
 namespace API.DTOs
 {
-    public class RegisterDTO
+    public class LoginDTO
     {
-        // Required makes sure you cant use an empty string for your entries --> Sends an error
         [Required]
         // These will bind and become lowercase
         public string Username { get; set; }
