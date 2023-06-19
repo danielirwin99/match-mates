@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AccountService } from '../_services/account.service';
-import { Observable, of } from 'rxjs';
-import { User } from '../_models/user';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-nav',
@@ -13,21 +12,24 @@ export class NavComponent implements OnInit {
 
   // This is our API Request that allows to login and out
   // This is now accessible in HTML
-  constructor(public accountService: AccountService) {}
+  constructor(
+    public accountService: AccountService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {}
 
   login() {
     // What happens when we Log In
     this.accountService.login(this.model).subscribe({
-      next: (response) => {
-        console.log(response);
-      },
-      error: (error) => console.log(error),
+      // Using the router from above --> When we Log In we are navigated to /members
+      next: (_) => this.router.navigateByUrl('/members'),
     });
   }
 
   logout() {
     this.accountService.logout();
+    // Takes us back to the homepage
+    this.router.navigateByUrl('/');
   }
 }
