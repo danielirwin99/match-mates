@@ -16,6 +16,8 @@ var app = builder.Build();
 
 // MIDDLEWARE
 // Configure the HTTP request pipeline. --> AS THE REQUEST COMES INTO OUR PIPELINE
+
+// Our Error Middleware
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();

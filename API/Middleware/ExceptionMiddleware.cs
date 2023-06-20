@@ -29,7 +29,7 @@ namespace API.Middleware
                 await _next(context);
             }
             // If the try block is unsuccessful it will hit the catch block
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 // Logging the error to our terminal
                 _logger.LogError(ex, ex.Message);
