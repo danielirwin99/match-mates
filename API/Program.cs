@@ -1,7 +1,5 @@
-using System.Text;
 using API.Extensions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +14,12 @@ builder.Services.AddIdentityServices(builder.Configuration);
 
 var app = builder.Build();
 
-
 // MIDDLEWARE
+// Configure the HTTP request pipeline. --> AS THE REQUEST COMES INTO OUR PIPELINE
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseHttpsRedirection();
 
-// Configure the HTTP request pipeline. --> AS THE REQUEST COMES INTO OUR PIPELINE
 // Allowing us to connect to our FRONTEND application
 app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
 
@@ -33,4 +32,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-// app.UseAuthorization(); --> Not using it ATM
+app.UseAuthorization();

@@ -9,6 +9,7 @@ namespace API.DTOs
         // These will bind and become lowercase
         public string Username { get; set; }
         [Required]
+        [StringLength(8, MinimumLength = 5)]
         public string Password { get; set; }
     }
 }

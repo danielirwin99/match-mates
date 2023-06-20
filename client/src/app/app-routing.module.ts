@@ -8,15 +8,25 @@ import { MessagesComponent } from './messages/messages.component';
 import { authGuard } from './_guards/auth.guard';
 
 const routes: Routes = [
+  // Home
   { path: '', component: HomeComponent },
-  { path: 'members', component: MemberListComponent, canActivate: [authGuard] },
+
+  // This Allows the guards to run over all of the children (the routes below)
   {
-    path: 'members/:id',
-    component: MemberDetailComponent,
+    path: '',
+    runGuardsAndResolvers: 'always',
     canActivate: [authGuard],
+    children: [
+      { path: 'members', component: MemberListComponent },
+      {
+        path: 'members/:id',
+        component: MemberDetailComponent,
+      },
+      { path: 'lists', component: ListsComponent },
+      { path: 'messages', component: MessagesComponent },
+    ],
   },
-  { path: 'lists', component: ListsComponent, canActivate: [authGuard] },
-  { path: 'messages', component: MessagesComponent, canActivate: [authGuard] },
+
   // Our Error Component
   { path: '**', component: HomeComponent, pathMatch: 'full' },
 ];
