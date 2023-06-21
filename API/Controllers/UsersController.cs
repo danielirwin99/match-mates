@@ -11,7 +11,7 @@ namespace API.Controllers
 {
     // Only allowed to get Users when they are authorised to do so
     // Base is coming from our APIController file
-    // [Authorize] --> Need to login
+    [Authorize]
     public class UsersController : BaseApiController
     {
         private readonly DataContext _context;

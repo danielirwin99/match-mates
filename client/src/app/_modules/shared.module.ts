@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ToastrModule } from 'ngx-toastr';
 
+// Stored Modules to remove clutter in app.module
+
 @NgModule({
   declarations: [],
   imports: [
