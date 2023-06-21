@@ -22,7 +22,6 @@ namespace API.Extensions
             });
 
             // This allows our browser to accept our localhost:5001 as trustworthy for the Angular requests from it
-
             // Anything before var app is considered our SERVICES CONTAINER
             services.AddCors();
 
@@ -31,6 +30,12 @@ namespace API.Extensions
             // 1. Our Interface, 2. Our Implementation Class
             // Using both saves us time to test them
             services.AddScoped<ITokenService, TokenService>();
+
+            // This allows the following files injectable into our User Controller
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            // Allows our project to use AutoMapper (Only good for a single project)
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             return services;
         }

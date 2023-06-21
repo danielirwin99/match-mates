@@ -1,5 +1,8 @@
 using API.Data;
+using API.DTOs;
 using API.Entities;
+using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,33 +17,36 @@ namespace API.Controllers
     [Authorize]
     public class UsersController : BaseApiController
     {
-        private readonly DataContext _context;
-        public UsersController(DataContext context)
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+        public UsersController(IUserRepository userRepository, IMapper mapper)
         {
-            _context = context;
+            _mapper = mapper;
+            _userRepository = userRepository;
         }
         // -----------------------
-        // Getting a all users
+        // Getting all users
         // -----------------------
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<MemberDTO>>> GetUsers()
         {
-            // Gives us our list of Users
-            var users = await _context.Users.ToListAsync();
+            // Gives us our list of Users from our UserRepository
+            var users = await _userRepository.GetMembersAsync();
 
-            return users;
+            // Returning the argument above
+            return Ok(users);
+
         }
         // -----------------------
-        // Getting a specific user
+        // Getting a specific user by username
         // -----------------------
-        [HttpGet("{id}")]
-        // We are specifying that we want to use the id as an argument
-        public async Task<ActionResult<AppUser>> GetUser(int id)
+        [HttpGet("{username}")]
+        public async Task<ActionResult<MemberDTO>> GetUser(string username)
         {
-            // Finds a primary key value
-            var user = await _context.Users.FindAsync(id);
+            // Finds the user by searching the Usernames in the database and returns it
+            return await _userRepository.GetMemberAsync(username);
 
-            return user;
+
         }
     }
 }
