@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
 import { User } from '../_models/user';
+import { environment } from 'src/environments/environment';
 
 // This auto provides it in the app.module
 @Injectable({
@@ -11,7 +12,8 @@ import { User } from '../_models/user';
 // Responsible for making our HTTP Requests from server to client
 // Using a service lets us centralise our http requests
 export class AccountService {
-  baseUrl = 'https://localhost:5001/api/';
+  // Getting it from our dev environment file
+  baseUrl = environment.apiUrl
 
   // Sort of a global value that we can use elsewhere in our application
   // Can be User OR null
@@ -51,7 +53,6 @@ export class AccountService {
           localStorage.setItem('user', JSON.stringify(user));
           this.currentUserSource.next(user);
         }
-
       })
     );
   }
