@@ -5,7 +5,7 @@
     <h1>Your Profile</h1>
   </div>
   <div class="col-8">
-    <div class="alert alert-info">
+    <div class="alert alert-info" *ngIf="editForm.dirty">
       <p>
         <strong>Information :</strong>
         You have made changes. Any unsaved changes will be lost
@@ -38,14 +38,22 @@
         </div>
       </div>
       <div class="card-footer">
-        <button class="btn btn-success col-12">Save Changes</button>
+        <!-- Our edit form is disabled unless we make changes -->
+        <button
+          form="editForm"
+          [disabled]="!editForm.dirty"
+          class="btn btn-success col-12"
+        >
+          Save Changes
+        </button>
       </div>
     </div>
   </div>
   <div class="col-8">
     <tabset class="member-tabset">
       <tab heading="About {{ member.knownAs }}">
-        <form>
+        <!-- Ng Submit looks for a button in our for with type of Submit -->
+        <form id="editForm" #editForm="ngForm" (ngSubmit)="updateMember()">
           <h4>Description</h4>
           <textarea
             class="form-control"
