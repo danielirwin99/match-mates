@@ -21,6 +21,7 @@ import { ServerErrorComponent } from './errors/server-error/server-error.compone
 import { MemberCardComponent } from './members/member-card/member-card.component';
 import { JwtInterceptor } from './_interceptors/jwt.interceptor';
 import { MemberEditComponent } from './members/member-edit/member-edit.component';
+import { LoadingInterceptor } from './_interceptors/loading.interceptor';
 
 @NgModule({
   declarations: [
@@ -60,6 +61,13 @@ import { MemberEditComponent } from './members/member-edit/member-edit.component
       provide: HTTP_INTERCEPTORS,
       // Pass through our Interceptor class that we built
       useClass: JwtInterceptor,
+      multi: true,
+    },
+    // Loading animation only triggers when we make a HTTP request rather than all of the
+    {
+      provide: HTTP_INTERCEPTORS,
+      // Pass through our Interceptor class that we built
+      useClass: LoadingInterceptor,
       multi: true,
     },
   ],

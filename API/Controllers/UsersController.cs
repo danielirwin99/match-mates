@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using API.Data;
 using API.DTOs;
 using API.Entities;
@@ -47,6 +48,31 @@ namespace API.Controllers
             return await _userRepository.GetMemberAsync(username);
 
 
+        }
+        // --------------------------
+        // Updating User Information
+        // --------------------------
+        [HttpPut]
+        public async Task<ActionResult> UpdateUser(MemberUpdateDTO memberUpdateDTO)
+        {
+            // Using NameIdentifier because that's the one we used for our username (See TokenService)
+            // Then getting the value of the claim
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Now that we have the username we can go across to our User Repository
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+
+            if (user == null) return NotFound();
+
+            // Updating all of the properties we passed into the MemberUpdateDTO into the USER
+            _mapper.Map(memberUpdateDTO, user);
+
+            // Saves the changes to the Database
+            // NoContent --> 204 Response saying everything is OK and there's nothing to return
+            if (await _userRepository.SaveAllAsync()) return NoContent();
+
+            // Return this IF we HAVEN'T made any CHANGES
+            return BadRequest("Failed to update user");
         }
     }
 }

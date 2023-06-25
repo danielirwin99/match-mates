@@ -4,6 +4,7 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ToastrModule } from 'ngx-toastr';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { NgxGalleryModule } from '@kolkov/ngx-gallery';
+import { NgxSpinnerModule } from 'ngx-spinner';
 
 // Stored Modules to remove clutter in app.module
 
@@ -18,7 +19,14 @@ import { NgxGalleryModule } from '@kolkov/ngx-gallery';
       positionClass: 'toast-bottom-right',
     }),
     NgxGalleryModule,
+    NgxSpinnerModule.forRoot({ type: 'line-scale-party' }),
   ],
-  exports: [BsDropdownModule, ToastrModule, TabsModule, NgxGalleryModule],
+  exports: [
+    BsDropdownModule,
+    ToastrModule,
+    TabsModule,
+    NgxGalleryModule,
+    NgxSpinnerModule,
+  ],
 })
 export class SharedModule {}

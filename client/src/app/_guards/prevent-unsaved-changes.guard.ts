@@ -1,24 +1,16 @@
-import { Injectable } from '@angular/core';
-import {
-  CanDeactivate,
-  ActivatedRouteSnapshot,
-  RouterStateSnapshot,
-  UrlTree,
-} from '@angular/router';
-import { Observable } from 'rxjs';
+import { CanDeactivateFn } from '@angular/router';
 import { MemberEditComponent } from '../members/member-edit/member-edit.component';
-import { ConfirmService } from '../_services/confirm.service';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class PreventUnsavedChangesGuard
-  implements CanDeactivate<MemberEditComponent>
-{
-  canDeactivate(component: MemberEditComponent): Observable<boolean> | boolean {
-    if (component.editForm.dirty) {
-      return confirm('test');
-    }
-    return true;
+// When we update our changes we want this guard to trigger
+// It basically prompts an alert to warn the User what happens
+
+export const preventUnsavedChangesGuard: CanDeactivateFn<
+  MemberEditComponent
+> = (component: MemberEditComponent): boolean => {
+  if (component.editForm?.dirty) {
+    return confirm(
+      'Are you sure you want to continue? Any unsaved changes will be lost'
+    );
   }
-}
+  return true;
+};
