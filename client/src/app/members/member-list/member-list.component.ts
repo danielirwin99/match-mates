@@ -10,6 +10,7 @@ import { MembersService } from 'src/app/_services/members.service';
 })
 export class MemberListComponent implements OnInit {
   // Type of Member from member.ts interface
+  // Member is now an observable of the Members
   members$: Observable<Member[]> | undefined;
 
   constructor(private memberService: MembersService) {}

@@ -1,4 +1,5 @@
 using API.Data;
+using API.Helpers;
 using API.Interfaces;
 using API.Services;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,12 @@ namespace API.Extensions
 
             // Allows our project to use AutoMapper (Only good for a single project)
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            // Our Cloudinary Service
+            services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
+
+            // Allows us to inject this into Controllers etc
+            services.AddScoped<IPhotoService, PhotoService>();
 
             return services;
         }

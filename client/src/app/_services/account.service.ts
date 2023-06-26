@@ -13,7 +13,7 @@ import { environment } from 'src/environments/environment';
 // Using a service lets us centralise our http requests
 export class AccountService {
   // Getting it from our dev environment file
-  baseUrl = environment.apiUrl
+  baseUrl = environment.apiUrl;
 
   // Sort of a global value that we can use elsewhere in our application
   // Can be User OR null
@@ -33,11 +33,9 @@ export class AccountService {
       map((response: User) => {
         // User is equal to the response we get back from the API
         const user = response;
-        // Storing the user in our localStorage so its saved
+        // Storing the user in our localStorage so its saved (see line 58)
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
-          // This fires the function above when we log in --> Line 20
-          this.currentUserSource.next(user);
+          this.setCurrentUser(user);
         }
       })
     );
@@ -48,10 +46,8 @@ export class AccountService {
   register(model: any) {
     return this.http.post<User>(this.baseUrl + 'account/register', model).pipe(
       map((user) => {
-        // If there was a successful register of a user --> Set this user in our localStorage
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
-          this.currentUserSource.next(user);
+          this.setCurrentUser(user);
         }
       })
     );
@@ -59,6 +55,8 @@ export class AccountService {
 
   // Sets the User Data from localStorage to the one we log in as
   setCurrentUser(user: User) {
+    // If there was a successful register of a user --> Set this user in our localStorage
+    localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSource.next(user);
   }
 

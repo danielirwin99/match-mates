@@ -52,7 +52,9 @@ namespace API.Controllers
             return new UserDTO
             {
                 Username = user.UserName,
-                Token = _tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user),
+                // Our Main Photo IF there is one
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
             };
         }
         // ---------------------
@@ -63,7 +65,9 @@ namespace API.Controllers
         {
             // Looking for our user
             // SingleorDefault --> If we don't find the user in our DB --> We get NULL back (Default Value)
-            var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == loginDTO.Username);
+            var user = await _context.Users
+            .Include(p => p.Photos)
+            .SingleOrDefaultAsync(x => x.UserName == loginDTO.Username);
 
             // If there is no user return this
             if (user == null) return Unauthorized("Invalid Username");
@@ -89,7 +93,8 @@ namespace API.Controllers
             return new UserDTO
             {
                 Username = user.UserName,
-                Token = _tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
             };
         }
 
