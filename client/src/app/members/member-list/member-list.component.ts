@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { Member } from 'src/app/_models/member';
 import { MembersService } from 'src/app/_services/members.service';
 
@@ -9,19 +10,12 @@ import { MembersService } from 'src/app/_services/members.service';
 })
 export class MemberListComponent implements OnInit {
   // Type of Member from member.ts interface
-  members: Member[] = [];
+  members$: Observable<Member[]> | undefined;
+
   constructor(private memberService: MembersService) {}
 
   // When we call our members we want to load it onto the component
   ngOnInit(): void {
-    this.loadMembers();
-  }
-
-  // Grabbing the members from members.service
-  loadMembers() {
-    // Our API request function
-    this.memberService.getMembers().subscribe({
-      next: (members) => (this.members = members),
-    });
+    this.members$ = this.memberService.getMembers();
   }
 }
