@@ -1,4 +1,5 @@
-<form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
+<!-- Form must be valid before you can register -->
+<form [formGroup]="registerForm" (ngSubmit)="registerForm.valid && register()" autocomplete="off">
   <h2 class="text-center text-primary">Sign Up</h2>
   <hr />
   <div class="mb-3">
@@ -53,13 +54,20 @@
     [type]="'password'"
   ></app-text-input>
 
+  <!-- Our Error Prompt on the Browser -->
+  <div class="row" *ngIf="validationErrors">
+    <ul class="text-danger">
+      <li *ngFor="let error of validationErrors">
+        {{ error }}
+      </li>
+    </ul>
+  </div>
+
   <div class="text-center">
-    <button class="btn btn-success me-2" type="submit">Register</button>
+    <!-- If the form is not valid i.e filled out properly => FORM IS DISABLED -->
+    <button [disabled]="!registerForm.valid" class="btn btn-success me-2" type="submit">Register</button>
     <button class="btn btn-default" type="button" (click)="cancel()">
       Cancel
     </button>
   </div>
 </form>
-
-<p>Form Value: {{ registerForm.value | json }}</p>
-<p>Form Value: {{ registerForm.status | json }}</p>

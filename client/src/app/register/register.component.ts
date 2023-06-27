@@ -9,6 +9,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 
 // Our Register Functionality
 
@@ -21,18 +22,20 @@ export class RegisterComponent implements OnInit {
   // This is for our child component to parent component --> Emits an event
   @Output() cancelRegister = new EventEmitter();
 
-  // Our property
-  model: any = {};
-
   // Our Type for the register input
   registerForm: FormGroup = new FormGroup({});
 
+  // Our Max Date type for 18 year old or over
   maxDate: Date = new Date();
+
+  // Handling the Validation Errors inside our component
+  validationErrors: string[] | undefined;
 
   constructor(
     private accountService: AccountService,
     private toastr: ToastrService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -93,20 +96,46 @@ export class RegisterComponent implements OnInit {
 
   // Register Function
   register() {
-    console.log(this.registerForm?.value);
-    // this.accountService.register(this.model).subscribe({
-    //   next: () => {
-    //     this.cancel();
-    //   },
-    //   error: (error) => {
-    //     console.log(error);
-    //     this.toastr.error(error.error);
-    //   },
-    // });
+    console.log(this.registerForm.value);
+    // Getting the value of our DOB from the function below
+    const dob = this.getDateOnly(
+      this.registerForm.controls['dateOfBirth'].value
+    );
+    // Overriding our DOB Value --> Spreading all of the properties inside as individual properties
+    const values = { ...this.registerForm.value, dateOfBirth: dob };
+
+    // Using our Reactive Form and the values from the data just above
+    this.accountService.register(values).subscribe({
+      next: () => {
+        // After they log in --> Redirect the user to the members page
+        this.router.navigateByUrl('/members');
+      },
+      error: (error) => {
+        // This gives us an array of validation errors from our server
+        this.validationErrors = error;
+      },
+    });
   }
 
   // Our Cancel function
   cancel() {
     this.cancelRegister.emit(false);
+  }
+
+  private getDateOnly(dob: string | undefined) {
+    // If the Date of Birth is empty we just want to close this function
+    if (!dob) return;
+
+    let theDob = new Date(dob);
+    return (
+      new Date(
+        // Getting it in UTC Time Format
+        theDob.setMinutes(theDob.getMinutes() - theDob.getTimezoneOffset())
+      )
+        // Returns the date format as a string
+        .toISOString()
+        // Shows just the first 10 characters
+        .slice(0, 10)
+    );
   }
 }
