@@ -1,5 +1,6 @@
 using API.DTOs;
 using API.Entities;
+using API.Helpers;
 using API.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -32,10 +33,16 @@ namespace API.Data
         }
 
         // Returns our Users --> GET ALL REQUEST
-        public async Task<IEnumerable<MemberDTO>> GetMembersAsync()
+        public async Task<PagedList<MemberDTO>> GetMembersAsync(UserParams userParams)
         {
             // Same as above but a get all request
-            return await _context.Users.ProjectTo<MemberDTO>(_mapper.ConfigurationProvider).ToListAsync();
+            var query = _context.Users
+            .ProjectTo<MemberDTO>(_mapper.ConfigurationProvider)
+            // Entity framework is not going to keep track of what we return from this method
+            .AsNoTracking();
+
+            // Pulling CreateAsync from our PagedList.cs
+            return await PagedList<MemberDTO>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
         }
 
         // -----------------------------------------------------------------------------------------
