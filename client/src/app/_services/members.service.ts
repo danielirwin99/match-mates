@@ -1,8 +1,9 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Member } from '../_models/member';
 import { map, of } from 'rxjs';
+import { PaginatedResult } from '../_models/pagination';
 
 @Injectable({
   providedIn: 'root',
@@ -11,22 +12,42 @@ export class MembersService {
   // Pulled from our environment file
   baseUrl = environment.apiUrl;
   members: Member[] = [];
+  paginatedResult: PaginatedResult<Member[]> = new PaginatedResult<Member[]>();
 
   constructor(private http: HttpClient) {}
 
   // Getting a list of members
-  getMembers() {
-    // If we have loaded a member already (greater than 0) --> return an observable of the members
-    if (this.members.length > 0) return of(this.members);
+  getMembers(page?: number, itemsPerPage?: number) {
+    // HttpParams --> Allows us to set query string parameters along with our HTTP Request
+    let params = new HttpParams();
+
+    if (page && itemsPerPage) {
+      // If we do have the page and itemsPerPage --> We want to set a query string that goes along with the Request
+      params = params.append('pageNumber', page);
+      params = params.append('pageSize', itemsPerPage);
+    }
+
     // Pulling through our Interface Type List from member.ts
     // Adding on our endpoint to the url as an array of users
-    return this.http.get<Member[]>(this.baseUrl + 'users').pipe(
-      // Maps over the members to display them
-      map((members) => {
-        this.members = members;
-        return members;
-      })
-    );
+    // We want to it to observe our response and pass up the params to the url body
+    return this.http
+      .get<Member[]>(this.baseUrl + 'users', { observe: 'response', params })
+      .pipe(
+        map((response) => {
+          // If we do get the response.body back
+          if (response.body) {
+            // Linking our response to the members
+            this.paginatedResult.result = response.body;
+          }
+          // Accessing our Server Headers Response
+          const pagination = response.headers.get('Pagination');
+          if (pagination) {
+            // Turning our result into an object
+            this.paginatedResult.pagination = JSON.parse(pagination);
+          }
+          return this.paginatedResult;
+        })
+      );
   }
 
   // Getting a individual member
@@ -59,7 +80,7 @@ export class MembersService {
     return this.http.put(this.baseUrl + 'users/set-main-photo/' + photoId, {});
   }
 
-  deletePhoto(photoId:number) {
-    return this.http.delete(this.baseUrl + "users/delete-photo/" + photoId, {});
+  deletePhoto(photoId: number) {
+    return this.http.delete(this.baseUrl + 'users/delete-photo/' + photoId, {});
   }
 }
