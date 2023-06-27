@@ -4,6 +4,7 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,8 +14,10 @@ namespace API.Controllers
     {
         private readonly DataContext _context;
         private readonly ITokenService _tokenService;
-        public AccountController(DataContext context, ITokenService tokenService)
+        public IMapper _mapper;
+        public AccountController(DataContext context, ITokenService tokenService, IMapper mapper)
         {
+            _mapper = mapper;
             // This is what we write inside our API --> i.e typing up the username and password
             _context = context;
             _tokenService = tokenService;
@@ -29,20 +32,19 @@ namespace API.Controllers
             // If there is a User in the system --> 
             if (await UserExists(registerDTO.Username)) return BadRequest("Username is Taken");
 
+            var user = _mapper.Map<AppUser>(registerDTO);
+
             using var hmac = new HMACSHA512();
 
-            var user = new AppUser
-            {
-                // We are getting our Username from the registerDTO file
-                UserName = registerDTO.Username,
+            // We are getting our Username from the registerDTO file
+            user.UserName = registerDTO.Username.ToLower();
 
-                // Same as Username where we are getting the password
-                // Connects the hash to the password we write
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
+            // Same as Username where we are getting the password
+            // Connects the hash to the password we write
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
 
-                // Randomly generates a key
-                PasswordSalt = hmac.Key
-            };
+            // Randomly generates a key
+            user.PasswordSalt = hmac.Key;
 
             // Telling the database to add the user
             _context.Users.Add(user);
@@ -53,8 +55,7 @@ namespace API.Controllers
             {
                 Username = user.UserName,
                 Token = _tokenService.CreateToken(user),
-                // Our Main Photo IF there is one
-                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
+                KnownAs = user.KnownAs,
             };
         }
         // ---------------------
@@ -94,7 +95,8 @@ namespace API.Controllers
             {
                 Username = user.UserName,
                 Token = _tokenService.CreateToken(user),
-                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                KnownAs = user.KnownAs
             };
         }
 
