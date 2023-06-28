@@ -20,27 +20,15 @@ export class MemberListComponent implements OnInit {
   pagination: Pagination | undefined;
   // Our pageSize and items per page stored in here
   userParams: UserParams | undefined;
-  // User from User model
-  user: User | undefined;
+
   genderList = [
     { value: 'male', display: 'Males' },
     { value: 'female', display: 'Females' },
   ];
 
-  constructor(
-    private memberService: MembersService,
-    private accountService: AccountService
-  ) {
-    // Making an observable request
-    this.accountService.currentUser$.pipe(take(1)).subscribe({
-      // If we get our user back from the request
-      next: (user) => {
-        if (user) {
-          this.userParams = new UserParams(user);
-          this.user = user;
-        }
-      },
-    });
+  constructor(private memberService: MembersService) {
+    // Coming from our memberService functions of params
+    this.userParams = this.memberService.getUserParams();
   }
 
   // When we call our members we want to load it onto the component
@@ -52,24 +40,25 @@ export class MemberListComponent implements OnInit {
   // Loads the members
   loadMembers() {
     // Stops our strict mode not letting us
-    if (!this.userParams) return;
-    this.memberService.getMembers(this.userParams).subscribe({
-      next: (response) => {
-        if (response.result && response.pagination) {
-          this.members = response.result;
-          this.pagination = response.pagination;
-        }
-      },
-    });
+    if (this.userParams) {
+      // Checking to see if we have these userParams
+      this.memberService.setUserParams(this.userParams);
+      this.memberService.getMembers(this.userParams).subscribe({
+        next: (response) => {
+          if (response.result && response.pagination) {
+            this.members = response.result;
+            this.pagination = response.pagination;
+          }
+        },
+      });
+    }
   }
 
   resetFilters() {
-    // Checking to see if we have the user
-    if (this.user) {
-      this.userParams = new UserParams(this.user);
-      // Resetting the the load of members based on the default parameters
-      this.loadMembers();
-    }
+    // Our Member Service has the functionality
+    this.userParams = this.memberService.resetUserParams();
+    // Resetting the the load of members based on the default parameters
+    this.loadMembers();
   }
 
   // Changing the page function
@@ -78,6 +67,8 @@ export class MemberListComponent implements OnInit {
     // This check stops any bugs happening with requests
     if (this.userParams && this.userParams?.pageNumber !== event.page) {
       this.userParams.pageNumber = event.page;
+      // Pulling through our Member Service Function
+      this.memberService.setUserParams(this.userParams);
       this.loadMembers();
     }
   }

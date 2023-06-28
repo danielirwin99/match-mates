@@ -19,11 +19,12 @@
         </div>
         <div>
           <strong>Last Active:</strong>
-          <p>{{ member.lastActive }}</p>
+          <!-- Concatenating a "Z" on the end converts it to local time -->
+          <p>{{ member.lastActive + "Z" | timeago }}</p>
         </div>
         <div>
           <strong>Member Since:</strong>
-          <p>{{ member.created }}</p>
+          <p>{{ member.created | date : "dd MMM yyyy" }}</p>
         </div>
       </div>
       <div class="card-footer">
