@@ -19,6 +19,12 @@ namespace API.Helpers
             // If the value is greater than the MaxPageSize --> Return MaxPageSize, If its smaller --> Return the value
             set => _pageSize = (value > MaxPageSize) ? MaxPageSize : value;
         }
-        
+        public string CurrentUsername { get; set; }
+        public string Gender { get; set; }
+        public int MinAge { get; set; } = 18;
+        public int MaxAge { get; set; } = 70;
+
+        // Default is sorted by Last Active
+        public string OrderBy { get; set; } = "lastActive";
     }
 }

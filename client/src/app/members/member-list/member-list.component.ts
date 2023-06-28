@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { Member } from 'src/app/_models/member';
 import { Pagination } from 'src/app/_models/pagination';
+import { User } from 'src/app/_models/user';
+import { UserParams } from 'src/app/_models/userParams';
+import { AccountService } from 'src/app/_services/account.service';
 import { MembersService } from 'src/app/_services/members.service';
 
 @Component({
@@ -15,13 +18,30 @@ export class MemberListComponent implements OnInit {
   // members$: Observable<Member[]> | undefined;
   members: Member[] = [];
   pagination: Pagination | undefined;
+  // Our pageSize and items per page stored in here
+  userParams: UserParams | undefined;
+  // User from User model
+  user: User | undefined;
+  genderList = [
+    { value: 'male', display: 'Males' },
+    { value: 'female', display: 'Females' },
+  ];
 
-  // What number we want to show first
-  pageNumber = 1;
-  // How many we want to show per page
-  pageSize = 5;
-
-  constructor(private memberService: MembersService) {}
+  constructor(
+    private memberService: MembersService,
+    private accountService: AccountService
+  ) {
+    // Making an observable request
+    this.accountService.currentUser$.pipe(take(1)).subscribe({
+      // If we get our user back from the request
+      next: (user) => {
+        if (user) {
+          this.userParams = new UserParams(user);
+          this.user = user;
+        }
+      },
+    });
+  }
 
   // When we call our members we want to load it onto the component
   ngOnInit(): void {
@@ -31,7 +51,9 @@ export class MemberListComponent implements OnInit {
 
   // Loads the members
   loadMembers() {
-    this.memberService.getMembers(this.pageNumber, this.pageSize).subscribe({
+    // Stops our strict mode not letting us
+    if (!this.userParams) return;
+    this.memberService.getMembers(this.userParams).subscribe({
       next: (response) => {
         if (response.result && response.pagination) {
           this.members = response.result;
@@ -41,12 +63,21 @@ export class MemberListComponent implements OnInit {
     });
   }
 
+  resetFilters() {
+    // Checking to see if we have the user
+    if (this.user) {
+      this.userParams = new UserParams(this.user);
+      // Resetting the the load of members based on the default parameters
+      this.loadMembers();
+    }
+  }
+
   // Changing the page function
   // Takes in an event
   pageChanged(event: any) {
     // This check stops any bugs happening with requests
-    if (this.pageNumber !== event.page) {
-      this.pageNumber = event.page;
+    if (this.userParams && this.userParams?.pageNumber !== event.page) {
+      this.userParams.pageNumber = event.page;
       this.loadMembers();
     }
   }

@@ -23,8 +23,9 @@ namespace API.Services
             var claims = new List<Claim>
             {
                 // Function for the UserName that claims the JWT Token
-                // We are setting our NameId to user.UserName
-                new Claim(JwtRegisteredClaimNames.NameId, user.UserName)
+                // We are setting our NameId to Id of the User
+                new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
             };
 
             // Checking to see if the credentials are the same 

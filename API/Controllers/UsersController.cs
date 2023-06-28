@@ -36,6 +36,20 @@ namespace API.Controllers
         // We need to give our API a hint about where it needs to look to find the UserParams
         public async Task<ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
         {
+
+            // Storing our currentUser in a const to use below
+            var currentUser = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            // Links the Username logged in to the CurrentUsername Params
+            userParams.CurrentUsername = currentUser.UserName;
+
+            
+            if (string.IsNullOrEmpty(userParams.Gender))
+            {
+                // If our User is Male --> Return female genders vice versa
+                userParams.Gender = currentUser.Gender == "male" ? "female" : "male";
+            }
+
+
             // Gives us our list of Users from our UserRepository
             var users = await _userRepository.GetMembersAsync(userParams);
 

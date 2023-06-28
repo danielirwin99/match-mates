@@ -44,6 +44,9 @@ namespace API.Extensions
             // Allows us to inject this into Controllers etc
             services.AddScoped<IPhotoService, PhotoService>();
 
+            // Allows us to use our action filter created (See Helpers folder)
+            services.AddScoped<LogUserActivity>();
+
             return services;
         }
     }

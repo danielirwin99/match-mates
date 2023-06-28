@@ -35,14 +35,37 @@ namespace API.Data
         // Returns our Users --> GET ALL REQUEST
         public async Task<PagedList<MemberDTO>> GetMembersAsync(UserParams userParams)
         {
-            // Same as above but a get all request
-            var query = _context.Users
-            .ProjectTo<MemberDTO>(_mapper.ConfigurationProvider)
-            // Entity framework is not going to keep track of what we return from this method
-            .AsNoTracking();
+            var query = _context.Users.AsQueryable();
+
+            // Returning back all the users that do not have the CurrentUsername to the server
+            query = query.Where(u => u.UserName != userParams.CurrentUsername);
+
+            // Returning back all the users that do not have the same Gender to the server
+            query = query.Where(u => u.Gender == userParams.Gender);
+
+            // Working out the minimum date of birth is
+            var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MaxAge - 1));
+
+            // Working out the maximum date of birth is
+            var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MinAge));
+
+            // Our Query parameters for the age
+            query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
+
+            // Our Sorting query function on the server
+            query = userParams.OrderBy switch
+            {
+                // This gives us our newest user first
+                "created" => query.OrderByDescending(u => u.Created),
+                // Our default
+                _ => query.OrderByDescending(u => u.LastActive)
+            };
 
             // Pulling CreateAsync from our PagedList.cs
-            return await PagedList<MemberDTO>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
+            return await PagedList<MemberDTO>.CreateAsync(
+            query.AsNoTracking().ProjectTo<MemberDTO>(_mapper.ConfigurationProvider),
+            userParams.PageNumber,
+            userParams.PageSize);
         }
 
         // -----------------------------------------------------------------------------------------
