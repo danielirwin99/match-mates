@@ -47,6 +47,9 @@ namespace API.Extensions
             // Allows us to use our action filter created (See Helpers folder)
             services.AddScoped<LogUserActivity>();
 
+            // Allows us to use it in the controller
+            services.AddScoped<ILikesRepository, LikesRepository>();
+
             return services;
         }
     }

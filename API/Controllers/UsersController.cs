@@ -196,7 +196,7 @@ namespace API.Controllers
             // This is for our seeded photos
             if (photo.PublicId != null)
             {
-                var result = await _photoService.DeletePhtoAsync(photo.PublicId);
+                var result = await _photoService.DeletePhotoAsync(photo.PublicId);
                 if (result.Error != null) return BadRequest(result.Error.Message);
             }
 

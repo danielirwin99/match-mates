@@ -49,7 +49,7 @@ namespace API.Services
             return uploadResult;
         }
 
-        public async Task<DeletionResult> DeletePhtoAsync(string publicId)
+        public async Task<DeletionResult> DeletePhotoAsync(string publicId)
         {
             // Deleting via the params of the public id of the photo
             var deleteParams = new DeletionParams(publicId);

@@ -8,6 +8,6 @@ namespace API.Interfaces
         Task<ImageUploadResult> AddPhotoAsync(IFormFile file);
         
         // This is connected to our our Photo.cs publicId
-        Task<DeletionResult> DeletePhtoAsync(string publicId);
+        Task<DeletionResult> DeletePhotoAsync(string publicId);
     }
 }
