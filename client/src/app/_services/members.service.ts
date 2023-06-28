@@ -124,12 +124,31 @@ export class MembersService {
     );
   }
 
+  // Setting Main Photo request
   setMainPhoto(photoId: number) {
     return this.http.put(this.baseUrl + 'users/set-main-photo/' + photoId, {});
   }
 
+  // Deleting photo request
   deletePhoto(photoId: number) {
     return this.http.delete(this.baseUrl + 'users/delete-photo/' + photoId, {});
+  }
+
+  // Add Like Request
+  // Taking in the username that is about to be liked as a parameter
+  addLike(username: string) {
+    return this.http.post(this.baseUrl + 'likes/' + username, {});
+  }
+
+  // Getting our likes request
+  getLikes(predicate: string, pageNumber: number, pageSize: number) {
+    // Passing in our PaginationHeaders to use for pages on our List page for the likes
+    let params = this.getPaginationHeaders(pageNumber, pageSize);
+
+    params = params.append('predicate', predicate);
+
+    // Add type of Member[] to return more than just an object (contains the properties)
+    return this.getPaginatedResult<Member[]>(this.baseUrl + 'likes', params);
   }
 
   // Pulling through our Interface Type List from member.ts

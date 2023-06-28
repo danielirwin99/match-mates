@@ -22,7 +22,7 @@ namespace API.Helpers
             var repo = resultContext.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
 
             // Getting access to our user from repository from the line above
-            var user = await repo.GetUserByIdAsync(int.Parse(userId));
+            var user = await repo.GetUserByIdAsync(userId);
 
             // Setting the users last active to UTC Format to NOW
             user.LastActive = DateTime.UtcNow;

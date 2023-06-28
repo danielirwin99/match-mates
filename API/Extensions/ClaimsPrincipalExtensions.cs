@@ -12,9 +12,10 @@ namespace API.Extensions
             // Name = UniqueName from Token Service
             return user.FindFirst(ClaimTypes.Name)?.Value;
         }
-        public static string GetUserId(this ClaimsPrincipal user)
+        public static int GetUserId(this ClaimsPrincipal user)
         {
-            return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // This returns a string so we need to convert it into an int
+            return int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
         }
     }
 }

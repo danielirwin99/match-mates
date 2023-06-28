@@ -2,6 +2,7 @@
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
+using API.Helpers;
 using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,8 +27,7 @@ namespace API.Controllers
         public async Task<ActionResult> AddLike(string username)
         {
             // Getting the User that will be LIKING
-            // This returns a string so we need to convert it into an int
-            var sourceUserId = int.Parse(User.GetUserId());
+            var sourceUserId = (User.GetUserId());
 
             // Passing in the username we have in our route parameter
             var likedUser = await _userRepository.GetUserByUsernameAsync(username);
@@ -66,9 +66,15 @@ namespace API.Controllers
 
         [HttpGet]
         // Predicate is to see whether we want to send back the liked users or liked by users
-        public async Task<ActionResult<IEnumerable<LikeDTO>>> GetUserLikes(string predicate)
+        public async Task<ActionResult<PagedList<LikeDTO>>> GetUserLikes([FromQuery] LikesParams likesParams) // We have to tell the controller where to find the params
         {
-            var users = await _likesRepository.GetUserLikes(predicate, int.Parse(User.GetUserId()));
+            // We need to get the UserId for our predicate
+            likesParams.UserId = User.GetUserId();
+
+            var users = await _likesRepository.GetUserLikes(likesParams);
+
+            // Adding our Pagination Headers to the response
+            Response.AddPaginationHeader(new PaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages));
 
             return Ok(users);
         }
