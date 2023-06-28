@@ -29,7 +29,7 @@ namespace API.Controllers
         {
             var thing = _context.Users.Find(-1);
 
-            if (thing == null) return NotFound();
+            if (thing == null) return NotFound("Route could not be found");
 
             return thing;
         }
