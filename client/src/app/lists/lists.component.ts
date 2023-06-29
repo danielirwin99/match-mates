@@ -25,7 +25,9 @@ export class ListsComponent implements OnInit {
 
   loadLikes() {
     this.memberService
+      // Using our manual values from above
       .getLikes(this.predicate, this.pageNumber, this.pageSize)
+      // Http request from memberService
       .subscribe({
         next: (response) => {
           this.members = response.result;
