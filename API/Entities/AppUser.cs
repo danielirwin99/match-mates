@@ -50,6 +50,10 @@ namespace API.Entities
         public List<UserLike> LikedByUsers { get; set; }
         public List<UserLike> LikedUsers { get; set; }
 
+        // Creates a List for each of these values
+        public List<Message> MessagesSent { get; set; }
+        public List<Message> MessagesReceived { get; set; }
+
 
 
     }

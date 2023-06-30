@@ -3,11 +3,11 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Member } from '../_models/member';
 import { map, of } from 'rxjs';
-import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
 import { AccountService } from './account.service';
 import { take } from 'rxjs';
 import { User } from '../_models/user';
+import { getPaginatedResult, getPaginationHeaders } from './paginationHelper';
 
 @Injectable({
   providedIn: 'root',
@@ -65,7 +65,7 @@ export class MembersService {
     if (response) return of(response);
 
     // Our HTTP params are populated from here
-    let params = this.getPaginationHeaders(
+    let params = getPaginationHeaders(
       userParams.pageNumber,
       userParams.pageSize
     );
@@ -77,9 +77,10 @@ export class MembersService {
     // Sorting on the buttons
     params = params.append('orderBy', userParams.orderBy);
 
-    return this.getPaginatedResult<Member[]>(
+    return getPaginatedResult<Member[]>(
       this.baseUrl + 'users',
-      params
+      params,
+      this.http
     ).pipe(
       // Using the pipe(map) method we can project the results of our response and set them inside our member cache (see response above)
       // Purpose: Saving our cache so we don't have to request to the API every single refresh after have requested it once
@@ -143,44 +144,15 @@ export class MembersService {
   // Getting our likes request
   getLikes(predicate: string, pageNumber: number, pageSize: number) {
     // Passing in our PaginationHeaders to use for pages on our List page for the likes
-    let params = this.getPaginationHeaders(pageNumber, pageSize);
+    let params = getPaginationHeaders(pageNumber, pageSize);
 
     params = params.append('predicate', predicate);
 
     // Add type of Member[] to return more than just an object (contains the properties)
-    return this.getPaginatedResult<Member[]>(this.baseUrl + 'likes', params);
-  }
-
-  // Pulling through our Interface Type List from member.ts
-  // Adding on our endpoint to the url as an array of users
-  // We want to it to observe our response and pass up the params to the url body
-  private getPaginatedResult<T>(url: string, params: HttpParams) {
-    const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
-    return this.http.get<T>(url, { observe: 'response', params }).pipe(
-      map((response) => {
-        // If we do get the response.body back
-        if (response.body) {
-          // Linking our response to the members
-          paginatedResult.result = response.body;
-        }
-        // Accessing our Server Headers Response
-        const pagination = response.headers.get('Pagination');
-        if (pagination) {
-          // Turning our result into an object
-          paginatedResult.pagination = JSON.parse(pagination);
-        }
-        return paginatedResult;
-      })
+    return getPaginatedResult<Member[]>(
+      this.baseUrl + 'likes',
+      params,
+      this.http
     );
-  }
-
-  private getPaginationHeaders(pageNumber: number, pageSize: number) {
-    // HttpParams --> Allows us to set query string parameters along with our HTTP Request
-    let params = new HttpParams();
-
-    // If we do have the pageNumber and pageSize --> We want to set a query string that goes along with the Request
-    params = params.append('pageNumber', pageNumber);
-    params = params.append('pageSize', pageSize);
-    return params;
   }
 }

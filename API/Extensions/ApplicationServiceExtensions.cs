@@ -50,6 +50,8 @@ namespace API.Extensions
             // Allows us to use it in the controller
             services.AddScoped<ILikesRepository, LikesRepository>();
 
+            services.AddScoped<IMessageRepository, MessageRepository>();
+
             return services;
         }
     }

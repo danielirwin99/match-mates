@@ -12,7 +12,7 @@ namespace API.Interfaces
         Task<AppUser> GetUserWithLikes(int userId);
 
         // Do they want to get the user they have liked or the user they have been liked by
-        // Passing in Params to use for pagination aswell
+        // Passing in Params to use for pagination as well
         Task<PagedList<LikeDTO>> GetUserLikes(LikesParams likesParams);
     }
 }
