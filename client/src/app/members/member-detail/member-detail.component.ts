@@ -1,12 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
   NgxGalleryAnimation,
   NgxGalleryImage,
   NgxGalleryOptions,
 } from '@kolkov/ngx-gallery';
+import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
 import { Member } from 'src/app/_models/member';
+import { Message } from 'src/app/_models/message';
 import { MembersService } from 'src/app/_services/members.service';
+import { MessageService } from 'src/app/_services/message.service';
 
 @Component({
   selector: 'app-member-detail',
@@ -14,17 +17,22 @@ import { MembersService } from 'src/app/_services/members.service';
   styleUrls: ['./member-detail.component.css'],
 })
 export class MemberDetailComponent implements OnInit {
+  // When we want to click each tab and load it individually rather than load all of them at once
+  @ViewChild('memberTabs') memberTabs?: TabsetComponent;
   // Member could be a member type interface or undefined (not a member)
   member: Member | undefined;
   // Our third party gallery package
   galleryOptions: NgxGalleryOptions[] = [];
   galleryImages: NgxGalleryImage[] = [];
+  activeTab?: TabDirective;
+  messages: Message[] = [];
 
   // ActivatedRoute --> When a user clicks on the link it will activate the route
   // We can access the route parameter from this
   constructor(
     private memberService: MembersService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -75,5 +83,23 @@ export class MemberDetailComponent implements OnInit {
           (this.galleryImages = this.getImages());
       },
     });
+  }
+
+  loadMessages() {
+    // If we do have the username / member
+    if (this.member) {
+      // Pulling through our API Request
+      this.messageService.getMessageThread(this.member.userName).subscribe({
+        next: (messages) => (this.messages = messages),
+      });
+    }
+  }
+
+  onTabActivated(data: TabDirective) {
+    this.activeTab = data;
+    // When we click on Messages heading THEN we load the messages
+    if (this.activeTab.heading === 'Messages') {
+      this.loadMessages();
+    }
   }
 }
