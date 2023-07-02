@@ -18,7 +18,7 @@ import { MessageService } from 'src/app/_services/message.service';
 })
 export class MemberDetailComponent implements OnInit {
   // When we want to click each tab and load it individually rather than load all of them at once
-  @ViewChild('memberTabs') memberTabs?: TabsetComponent;
+  @ViewChild('memberTabs', { static: true }) memberTabs?: TabsetComponent;
   // Member could be a member type interface or undefined (not a member)
   member: Member | undefined;
   // Our third party gallery package
@@ -37,6 +37,14 @@ export class MemberDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMember();
+
+    this.route.queryParams.subscribe({
+      // We have access to our params here
+      next: (params) => {
+        // First part is checking to see if we have the tab parameter --> if we do then we want to use it
+        params['tab'] && this.selectTab(params['tab']);
+      },
+    });
     // Styling for the Image Gallery
     this.galleryOptions = [
       {
@@ -83,6 +91,13 @@ export class MemberDetailComponent implements OnInit {
           (this.galleryImages = this.getImages());
       },
     });
+  }
+
+  selectTab(heading: string) {
+    if (this.memberTabs) {
+      // Tabs returns an array so we can use .find to look for heading that is equal to the one we are looking for
+      this.memberTabs.tabs.find((x) => x.heading === heading)!.active = true;
+    }
   }
 
   loadMessages() {

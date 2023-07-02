@@ -46,13 +46,19 @@ namespace API.Data
             query = messageParams.Container switch
             {
                 // If the container equals "Inbox" we want to query from these parameters
-                "Inbox" => query.Where(u => u.RecipientUsername == messageParams.Username),
+                "Inbox" => query.Where(u => u.RecipientUsername == messageParams.Username
+                // We also want to check to see if the other side (recipient) has not deleted the message as well
+                && u.RecipientDeleted == false),
 
                 // If the container equals "Outbox" we want to query from these parameters
-                "OutBox" => query.Where(u => u.SenderUsername == messageParams.Username),
+                "OutBox" => query.Where(u => u.SenderUsername == messageParams.Username
+                // We also want to check to see if the other side (sender) has not deleted the message as well
+                && u.SenderDeleted == false),
 
                 // Our Unread Message Container
-                _ => query.Where(u => u.RecipientUsername == messageParams.Username && u.DateRead == null)
+                _ => query.Where(u => u.RecipientUsername == messageParams.Username
+                && u.RecipientDeleted == false
+                && u.DateRead == null)
 
             };
 
@@ -72,12 +78,13 @@ namespace API.Data
             .Include(u => u.Recipient).ThenInclude(p => p.Photos)
             // Looking for both the Sender and Receiver of the message thread
             .Where(
-                m => m.RecipientUsername == currentUsername &&
-                m.SenderUsername == recipientUsername ||
-                m.RecipientUsername == recipientUsername && m.SenderUsername == currentUsername
+                m => m.RecipientUsername == currentUsername && m.RecipientDeleted == false // The other side has not deleted the message
+                && m.SenderUsername == recipientUsername ||
+                m.RecipientUsername == recipientUsername && m.SenderDeleted == false // The other side has not deleted the message
+                && m.SenderUsername == currentUsername
             )
-            // Latests messages first
-            .OrderByDescending(m => m.MessageSent)
+            // Latest messages first
+            .OrderBy(m => m.MessageSent)
             .ToListAsync();
 
             // Getting a list of Unread Messages and marking them as sent

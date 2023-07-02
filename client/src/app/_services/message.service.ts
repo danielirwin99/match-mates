@@ -32,4 +32,17 @@ export class MessageService {
       this.baseUrl + 'messages/thread/' + username
     );
   }
+
+  sendMessage(username: string, content: string) {
+    // Passing through the type which is the message
+    return this.http.post<Message>(this.baseUrl + 'messages', {
+      // Binding the values that show in our API request
+      recipientUsername: username,
+      content,
+    });
+  }
+
+  deleteMessage(id: number) {
+    return this.http.delete(this.baseUrl + 'messages/' + id);
+  }
 }

@@ -14,15 +14,17 @@ export class MessagesComponent implements OnInit {
   container = 'Unread';
   pageNumber = 1;
   pageSize = 5;
+  loading = false;
 
   ngOnInit(): void {
-    this.loadMessages()
+    this.loadMessages();
   }
 
   constructor(private messageService: MessageService) {}
 
   // LOADING THE MESSAGES
   loadMessages() {
+    this.loading = true;
     this.messageService
       .getMessages(this.pageNumber, this.pageSize, this.container)
       .subscribe({
@@ -31,8 +33,20 @@ export class MessagesComponent implements OnInit {
           this.messages = response.result;
           // Syncing the pagination pages to the response
           this.pagination = response.pagination;
+          this.loading = false;
         },
       });
+  }
+
+  deleteMessage(id: number) {
+    this.messageService.deleteMessage(id).subscribe({
+      // Finding the message that fits the parameter we are passing in (id)
+      next: () =>
+        this.messages?.splice(
+          this.messages.findIndex((m) => m.id === id),
+          1 // Deleting 1 message
+        ),
+    });
   }
 
   // What happens when you change the page

@@ -88,5 +88,39 @@ namespace API.Controllers
             // username coming from the route parameter above
             return Ok(await _messageRepository.GetMessageThread(currentUsername, username));
         }
+
+        // DELETING A MESSAGE
+        [HttpDelete("{id}")]
+        // Passing through the id of the route parameter
+        public async Task<ActionResult> DeleteMessage(int id)
+        {
+            // Getting our username
+            var username = User.GetUsername();
+
+            // Getting our message
+            var message = await _messageRepository.GetMessage(id);
+
+            // Making sure its either the sender or the recipient that is deleting ONLY
+            if (message.SenderUsername != username
+            && message.RecipientUsername != username) return Unauthorized("You are not authorised to do this");
+
+
+            // Seeing if either deleted the message
+            if (message.SenderUsername == username) message.SenderDeleted = true;
+
+            if (message.RecipientUsername == username) message.RecipientDeleted = true;
+
+            // Seeing if both sides have deleted the message --> Delete it from the DB
+            if (message.SenderDeleted && message.RecipientDeleted)
+            {
+                _messageRepository.DeleteMessage(message);
+            }
+
+            // If the repository returns true (Nothing broken in the code) --> return 200 Ok Response
+            if (await _messageRepository.SaveAllAsync()) return Ok();
+
+            // If something did break --> Send this
+            return BadRequest("Problem deleting the message");
+        }
     }
 }
