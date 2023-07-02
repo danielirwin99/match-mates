@@ -1,6 +1,8 @@
 using API.Data;
+using API.Entities;
 using API.Extensions;
 using API.Middleware;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,11 +46,13 @@ try
 {
     var context = services.GetRequiredService<DataContext>();
 
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
     // Applies any pending migrations for the context to the database
     // Will also create the database if it does not already exist
     await context.Database.MigrateAsync();
     // Now that we have the database we can pass in our SeedUsers data --> The context
-    await Seed.SeedUsers(context);
+    await Seed.SeedUsers(userManager);
 }
 catch (System.Exception ex)
 {

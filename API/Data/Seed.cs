@@ -2,17 +2,18 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using API.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Data
 {
     public class Seed
     {
-        // Data context lets us pull through the Users
-        public static async Task SeedUsers(DataContext context)
+        // Identity build in Manager Service
+        public static async Task SeedUsers(UserManager<AppUser> userManager)
         {
             // If there are any Users in our database --> It will stop the execution
-            if (await context.Users.AnyAsync()) return;
+            if (await userManager.Users.AnyAsync()) return;
 
             // Looking inside our json mock data
             var userData = await File.ReadAllTextAsync("Data/UserSeedData.json");
@@ -32,17 +33,11 @@ namespace API.Data
 
                 // Puts the username lowercase
                 user.UserName = user.UserName.ToLower();
-                // Generating the password for the user --> Inside the Quotes is our PASSWORD (same password for each user)
-                user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
-                // The PasswordSalt = the hmac key
-                user.PasswordSalt = hmac.Key;
 
-                // Adding the user to our context (DataContext)
-                context.Users.Add(user);
+                // Our Dummy users credentials
+                // Identity returns and saves the changes
+                await userManager.CreateAsync(user, "Pa$$w0rd");
             }
-
-            // Saves the changes to use in our Database
-            await context.SaveChangesAsync();
         }
     }
 }

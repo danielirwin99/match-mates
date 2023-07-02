@@ -1,16 +1,25 @@
 using API.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace API.Data
 {
-    public class DataContext : DbContext
+    // IdentityDbContext has a built in Users context
+    // We need to tell Identity that we are using int for the id (take in the two entities)
+    // This means everything we use need to specify that we are using an integer for the id
+    public class DataContext : IdentityDbContext<AppUser,
+    AppRole, int,
+    IdentityUserClaim<int>,
+    AppUserRole, IdentityUserLogin<int>,
+    IdentityRoleClaim<int>,
+    IdentityUserToken<int>>
     {
         // We want to inject this data context into other classes
         public DataContext(DbContextOptions options) : base(options)
         {
         }
-        // Users = Our Table Name
-        public DbSet<AppUser> Users { get; set; }
 
         // Our Likes Table
         public DbSet<UserLike> Likes { get; set; }
@@ -23,6 +32,24 @@ namespace API.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<AppUser>()
+            // Many to many relationships
+            .HasMany(ur => ur.UserRoles)
+            // One to many relationship
+            .WithOne(u => u.User)
+            .HasForeignKey(ur => ur.UserId)
+            // Cannot be null
+            .IsRequired();
+
+            builder.Entity<AppRole>()
+            // Many to many relationships
+            .HasMany(ur => ur.UserRoles)
+            // One to many relationship
+            .WithOne(u => u.Role)
+            .HasForeignKey(ur => ur.RoleId)
+            // Cannot be null
+            .IsRequired();
 
             // We are targeting the entity we are interested in --> UserLike
             builder.Entity<UserLike>()

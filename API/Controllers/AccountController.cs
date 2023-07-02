@@ -1,10 +1,9 @@
-using System.Security.Cryptography;
-using System.Text;
 using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,14 +11,15 @@ namespace API.Controllers
 {
     public class AccountController : BaseApiController
     {
-        private readonly DataContext _context;
         private readonly ITokenService _tokenService;
         public IMapper _mapper;
-        public AccountController(DataContext context, ITokenService tokenService, IMapper mapper)
+        private readonly UserManager<AppUser> _userManager;
+
+        // Using UserManager Identity
+        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IMapper mapper)
         {
+            _userManager = userManager;
             _mapper = mapper;
-            // This is what we write inside our API --> i.e typing up the username and password
-            _context = context;
             _tokenService = tokenService;
         }
         // --------------------
@@ -34,21 +34,14 @@ namespace API.Controllers
 
             var user = _mapper.Map<AppUser>(registerDTO);
 
-            using var hmac = new HMACSHA512();
-
             // We are getting our Username from the registerDTO file
             user.UserName = registerDTO.Username.ToLower();
 
-            // Same as Username where we are getting the password
-            // Connects the hash to the password we write
-            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
+            // Saves the user into our database
+            var result = await _userManager.CreateAsync(user, registerDTO.Password);
 
-            // Randomly generates a key
-            user.PasswordSalt = hmac.Key;
-
-            // Telling the database to add the user
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            // Checking to see if the result was successful
+            if (!result.Succeeded) return BadRequest(result.Errors);
 
             // If register is successful return this
             return new UserDTO
@@ -64,32 +57,21 @@ namespace API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDTO)
         {
-            // Looking for our user
+            // Looking for our user from Identity Manager (User Manager)
             // SingleorDefault --> If we don't find the user in our DB --> We get NULL back (Default Value)
-            var user = await _context.Users
+            var user = await _userManager.Users
             .Include(p => p.Photos)
             .SingleOrDefaultAsync(x => x.UserName == loginDTO.Username);
 
             // If there is no user return this
             if (user == null) return Unauthorized("Invalid Username");
 
-            // We need to pass in the key we get back i.e the password
-            using var hmac = new HMACSHA512(user.PasswordSalt);
+            // Checking to see if the password is the correct one from Identity to the LoginDTO
+            var result = await _userManager.CheckPasswordAsync(user, loginDTO.Password);
 
-            // What our user enters for the password --> Converted into a hash
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDTO.Password));
+            // If the password is wrong
+            if (!result) return Unauthorized("Invalid password");
 
-            // Need to loop over the hashes looking for the correct one
-            for (int i = 0; i < computedHash.Length; i++)
-            {
-                // If the index of computedHash is not equal to the index we are looking for
-                if (computedHash[i] != user.PasswordHash[i])
-                {
-                    // If it does not equal return this
-                    return Unauthorized("Invalid Password");
-                }
-
-            }
             // If the hash entered for the login and the database hash are equal --> return the User --> valid entry
             return new UserDTO
             {
@@ -107,7 +89,7 @@ namespace API.Controllers
             // This asynchronously determines whether a sequence contains any elements 
             // --> i Any Existing Users
             // ToLower checks the user in lowercase
-            return await _context.Users.AnyAsync(user => user.UserName == username.ToLower());
+            return await _userManager.Users.AnyAsync(user => user.UserName == username.ToLower());
         }
     }
 }
