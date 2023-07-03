@@ -55,6 +55,13 @@ export class AccountService {
 
   // Sets the User Data from localStorage to the one we log in as
   setCurrentUser(user: User) {
+    user.roles = [];
+    // Accessing the roles inside our JWT Token --> Inside our API
+    const roles = this.getDecodedToken(user.token).role;
+
+    // This makes our roles an array regardless if there is only 1 role that would normally return NOT an array but an object
+    Array.isArray(roles) ? (user.roles = roles) : user.roles.push(roles);
+
     // If there was a successful register of a user --> Set this user in our localStorage
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSource.next(user);
@@ -65,5 +72,11 @@ export class AccountService {
     localStorage.removeItem('user');
     // Sets it back to null when we logout
     this.currentUserSource.next(null);
+  }
+
+  // Getting the token for the Admin
+  getDecodedToken(token: string) {
+    // We are interested in the details (i.e. nameid) and NOT the credentials (i.e password of the object)
+    return JSON.parse(atob(token.split('.')[1]));
   }
 }

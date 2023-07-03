@@ -5,4 +5,6 @@ export interface User {
   photoUrl: string;
   knownAs: string;
   gender: string;
+  // The roles are contained inside an array
+  roles: string[];
 }

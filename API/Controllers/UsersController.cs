@@ -32,6 +32,8 @@ namespace API.Controllers
         // -----------------------
         // Getting all users
         // -----------------------
+        // Admin can only get all the users
+        [Authorize(Roles = "Member")]
         [HttpGet]
         // We need to give our API a hint about where it needs to look to find the UserParams
         public async Task<ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
@@ -42,7 +44,7 @@ namespace API.Controllers
             // Links the Username logged in to the CurrentUsername Params
             userParams.CurrentUsername = currentUser.UserName;
 
-            
+
             if (string.IsNullOrEmpty(userParams.Gender))
             {
                 // If our User is Male --> Return female genders vice versa
@@ -63,6 +65,7 @@ namespace API.Controllers
         // -----------------------
         // Getting a specific user by username
         // -----------------------
+        [Authorize(Roles = "Member")]
         [HttpGet("{username}")]
         public async Task<ActionResult<MemberDTO>> GetUser(string username)
         {

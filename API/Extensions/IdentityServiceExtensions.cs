@@ -24,8 +24,9 @@ namespace API.Extensions
             // This creates all of the tables related to identity in our DB
             .AddEntityFrameworkStores<DataContext>();
 
-            
+
             // BEARER TOKEN PACKAGE
+            // Authentication FIRST --> THEN AUTHORISATION
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
                 // We specify some options that we want for our Bearer Token
@@ -40,6 +41,13 @@ namespace API.Extensions
                     // Temporary
                     ValidateAudience = false
                 };
+            });
+
+            services.AddAuthorization(options =>
+            {
+                // Options from our Admin Controller
+                options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin", "Moderator"));
             });
             return services;
         }

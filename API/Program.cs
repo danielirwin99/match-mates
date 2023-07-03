@@ -46,13 +46,17 @@ try
 {
     var context = services.GetRequiredService<DataContext>();
 
+    // Populates the Users
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
+    // Populates the roles for the users
+    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
 
     // Applies any pending migrations for the context to the database
     // Will also create the database if it does not already exist
     await context.Database.MigrateAsync();
     // Now that we have the database we can pass in our SeedUsers data --> The context
-    await Seed.SeedUsers(userManager);
+    await Seed.SeedUsers(userManager, roleManager);
 }
 catch (System.Exception ex)
 {
