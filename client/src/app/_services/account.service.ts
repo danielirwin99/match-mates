@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
 import { User } from '../_models/user';
 import { environment } from 'src/environments/environment';
+import { PresenceService } from './presence.service';
 
 // This auto provides it in the app.module
 @Injectable({
@@ -22,7 +23,10 @@ export class AccountService {
   // Dollar sign signifies it is an observable
   currentUser$ = this.currentUserSource;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private presenceService: PresenceService
+  ) {}
 
   // Our Login Request
   // model is our body
@@ -53,7 +57,7 @@ export class AccountService {
     );
   }
 
-  // Sets the User Data from localStorage to the one we log in as
+  // This function is called every time we refresh the browser or login
   setCurrentUser(user: User) {
     user.roles = [];
     // Accessing the roles inside our JWT Token --> Inside our API
@@ -65,6 +69,9 @@ export class AccountService {
     // If there was a successful register of a user --> Set this user in our localStorage
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSource.next(user);
+
+    // Connects us to the hub every time
+    this.presenceService.createHubConnection(user);
   }
 
   // Removing our user when hit logout
@@ -72,6 +79,9 @@ export class AccountService {
     localStorage.removeItem('user');
     // Sets it back to null when we logout
     this.currentUserSource.next(null);
+
+    // Stops the hub connection
+    this.presenceService.stopHubConnection();
   }
 
   // Getting the token for the Admin

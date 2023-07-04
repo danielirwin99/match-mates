@@ -45,21 +45,21 @@ export class UserManagementComponent implements OnInit {
     this.bsModalRef = this.modalService.show(RolesModalComponent, config);
 
     // We can choose what we want to do when we hide the modal
-    this.bsModalRef.onHide?.subscribe({
-      next: () => {
-        // Accessing the selectedRoles through this
-        const selectedRoles = this.bsModalRef.content?.selectedRoles;
+    // this.bsModalRef.onHide?.subscribe({
+    //   next: () => {
+    //     // Accessing the selectedRoles through this
+    //     const selectedRoles = this.bsModalRef.content?.selectedRoles;
 
-        // Comparing these two --> If they are not equal:
-        if (!this.arrayEqual(selectedRoles!, user.roles)) {
-          this.adminService
-            .updateUserRoles(user.username, selectedRoles!)
-            .subscribe({
-              next: (roles) => (user.roles = roles),
-            });
-        }
-      },
-    });
+    //     // Comparing these two --> If they are not equal:
+    //     if (!this.arrayEqual(selectedRoles!, user.roles)) {
+    //       this.adminService
+    //         .updateUserRoles(user.username, selectedRoles!)
+    //         .subscribe({
+    //           next: (roles) => (user.roles = roles),
+    //         });
+    //     }
+    //   },
+    // });
   }
 
   private arrayEqual(arr1: any[], arr2: any[]) {

@@ -2,6 +2,7 @@ using API.Data;
 using API.Helpers;
 using API.Interfaces;
 using API.Services;
+using API.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Extensions
@@ -51,6 +52,12 @@ namespace API.Extensions
             services.AddScoped<ILikesRepository, LikesRepository>();
 
             services.AddScoped<IMessageRepository, MessageRepository>();
+
+            // Our SignalR Service
+            services.AddSignalR();
+
+            // We want this service available application wide --> This will be live as long as our app is
+            services.AddSingleton<PresenceTracker>();
 
             return services;
         }

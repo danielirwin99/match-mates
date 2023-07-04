@@ -2,6 +2,7 @@ using API.Data;
 using API.Entities;
 using API.Extensions;
 using API.Middleware;
+using API.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,7 +28,12 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 // Allowing us to connect to our FRONTEND application
-app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
+app.UseCors(builder => builder
+.AllowAnyHeader()
+.AllowAnyMethod()
+// Need this for SignalR to be Authenticated to the server
+.AllowCredentials()
+.WithOrigins("https://localhost:4200"));
 
 // Asks do you have a Valid token?
 app.UseAuthentication();
@@ -36,6 +42,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Endpoint of the SignalR
+app.MapHub<PresenceHub>("hubs/presence");
 
 // Gives us access to all of the services we have in this app
 using var scope = app.Services.CreateScope();

@@ -41,6 +41,30 @@ namespace API.Extensions
                     // Temporary
                     ValidateAudience = false
                 };
+
+                // Authenticating inside SignalR
+                options.Events = new JwtBearerEvents
+                {
+                    // This gives us access to the token
+                    OnMessageReceived = context =>
+                    {
+                        // Our Bearer Token --> Need to access the query
+                        var accessToken = context.Request.Query["access_token"];
+
+                        // Accessing the path
+                        var path = context.HttpContext.Request.Path;
+
+                        // If there is a token and the path starts with "/hubs"
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs")) // Path from PresenceHub.cs
+                        {
+                            // GIVES ACCESS TO THE BEARER TOKEN
+                            context.Token = accessToken;
+                        }
+
+                        // Returns the task as complete
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             services.AddAuthorization(options =>
