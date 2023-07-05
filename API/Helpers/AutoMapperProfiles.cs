@@ -29,6 +29,14 @@ namespace API.Helpers
             .ForMember(d => d.SenderPhotoUrl, o => o.MapFrom(s => s.Sender.Photos.FirstOrDefault(x => x.IsMain).Url))
             // Receiver
             .ForMember(d => d.RecipientPhotoUrl, o => o.MapFrom(s => s.Recipient.Photos.FirstOrDefault(x => x.IsMain).Url));
+
+            // Converting the Date Time to UTC Format
+            CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+
+            // We need to create another map for Optional DateTime
+            // If we do get a value then we want to do the same as above
+            CreateMap<DateTime?, DateTime?>().ConvertUsing
+            (d => d.HasValue ? DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : null);
         }
     }
 }

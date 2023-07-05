@@ -27,6 +27,10 @@ namespace API.Data
         // Our Messages Table
         public DbSet<Message> Messages { get; set; }
 
+        public DbSet<Group> Groups { get; set; }
+
+        public DbSet<Connection> Connections { get; set; }
+
 
         // We are overriding OnModelCreating
         protected override void OnModelCreating(ModelBuilder builder)

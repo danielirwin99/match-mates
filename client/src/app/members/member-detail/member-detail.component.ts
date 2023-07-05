@@ -1,42 +1,58 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, RouteReuseStrategy, Router } from '@angular/router';
 import {
   NgxGalleryAnimation,
   NgxGalleryImage,
   NgxGalleryOptions,
 } from '@kolkov/ngx-gallery';
 import { TabDirective, TabsetComponent } from 'ngx-bootstrap/tabs';
+import { take } from 'rxjs';
 import { Member } from 'src/app/_models/member';
 import { Message } from 'src/app/_models/message';
-import { MembersService } from 'src/app/_services/members.service';
+import { User } from 'src/app/_models/user';
+import { AccountService } from 'src/app/_services/account.service';
 import { MessageService } from 'src/app/_services/message.service';
+import { PresenceService } from 'src/app/_services/presence.service';
 
 @Component({
   selector: 'app-member-detail',
   templateUrl: './member-detail.component.html',
   styleUrls: ['./member-detail.component.css'],
 })
-export class MemberDetailComponent implements OnInit {
+export class MemberDetailComponent implements OnInit, OnDestroy {
   // When we want to click each tab and load it individually rather than load all of them at once
   @ViewChild('memberTabs', { static: true }) memberTabs?: TabsetComponent;
   // Member could be a member type interface or undefined (not a member)
-  member: Member | undefined;
+  member: Member = {} as Member;
   // Our third party gallery package
   galleryOptions: NgxGalleryOptions[] = [];
   galleryImages: NgxGalleryImage[] = [];
   activeTab?: TabDirective;
   messages: Message[] = [];
+  user?: User;
 
   // ActivatedRoute --> When a user clicks on the link it will activate the route
   // We can access the route parameter from this
   constructor(
-    private memberService: MembersService,
     private route: ActivatedRoute,
-    private messageService: MessageService
-  ) {}
+    private messageService: MessageService,
+    public presenceService: PresenceService,
+    private accountService: AccountService,
+    private routeReuseStrategy: RouteReuseStrategy
+  ) {
+    this.accountService.currentUser$.pipe(take(1)).subscribe({
+      next: (user) => {
+        if (user) this.user = user;
+      },
+    });
+    // Updates the messages when you click the message notification
+    this.routeReuseStrategy.shouldReuseRoute = () => false;
+  }
 
   ngOnInit(): void {
-    this.loadMember();
+    this.route.data.subscribe({
+      next: (data) => (this.member = data['member']),
+    });
 
     this.route.queryParams.subscribe({
       // We have access to our params here
@@ -60,6 +76,10 @@ export class MemberDetailComponent implements OnInit {
     ];
   }
 
+  ngOnDestroy(): void {
+    this.messageService.stopHubConnection();
+  }
+
   getImages() {
     // If there is no member just exit out
     if (!this.member) return [];
@@ -74,23 +94,6 @@ export class MemberDetailComponent implements OnInit {
     }
     // Pushes it to the client (Website)
     return imageUrls;
-  }
-
-  loadMember() {
-    // Combining the member to the route of the username
-    const username = this.route.snapshot.paramMap.get('username');
-
-    // We need to check the username
-    if (!username) return;
-
-    // Now get the Member and push it to the route
-    this.memberService.getMember(username).subscribe({
-      next: (member) => {
-        (this.member = member),
-          // Syncing the styling above to our images from the member (see below)
-          (this.galleryImages = this.getImages());
-      },
-    });
   }
 
   selectTab(heading: string) {
@@ -113,8 +116,10 @@ export class MemberDetailComponent implements OnInit {
   onTabActivated(data: TabDirective) {
     this.activeTab = data;
     // When we click on Messages heading THEN we load the messages
-    if (this.activeTab.heading === 'Messages') {
-      this.loadMessages();
+    if (this.activeTab.heading === 'Messages' && this.user) {
+      this.messageService.createHubConnection(this.user, this.member.userName);
+    } else {
+      this.messageService.stopHubConnection();
     }
   }
 }

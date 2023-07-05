@@ -43,8 +43,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Endpoint of the SignalR
+// Endpoint of User Presence (Are they Active Now)
 app.MapHub<PresenceHub>("hubs/presence");
+
+// Endpoint for the message call from SignalR
+app.MapHub<MessageHub>("hubs/message");
 
 // Gives us access to all of the services we have in this app
 using var scope = app.Services.CreateScope();
@@ -64,6 +67,10 @@ try
     // Applies any pending migrations for the context to the database
     // Will also create the database if it does not already exist
     await context.Database.MigrateAsync();
+
+    // Removes the connections when we wipe the database USING ENTITY FRAMEWORK
+    context.Connections.RemoveRange(context.Connections);
+
     // Now that we have the database we can pass in our SeedUsers data --> The context
     await Seed.SeedUsers(userManager, roleManager);
 }

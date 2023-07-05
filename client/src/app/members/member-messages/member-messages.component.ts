@@ -12,12 +12,10 @@ export class MemberMessagesComponent implements OnInit {
   @ViewChild('messageForm') messageForm?: NgForm;
   // This component is a child of member-detailed.component
   @Input() username?: string;
-  // Passed down from member-detailed.component
-  @Input() messages: Message[] = [];
 
   messageContent = '';
 
-  constructor(private messageService: MessageService) {}
+  constructor(public messageService: MessageService) {}
 
   ngOnInit(): void {}
 
@@ -25,14 +23,12 @@ export class MemberMessagesComponent implements OnInit {
     // Checking if we have the username --> If we don't, stop the function
     if (!this.username) return;
 
+    // We are returning a Promise (from sendMessage in message.service) --> we need .then
     this.messageService
       .sendMessage(this.username, this.messageContent)
-      .subscribe({
-        // From our response we get our message, We can .push our message into our messages array from above
-        next: (message) => {
-          this.messages.push(message);
-          this.messageForm?.reset();
-        },
+      .then(() => {
+        // Our Message thread is handling the response so all we need to do is reset the form
+        this.messageForm?.reset();
       });
   }
 }

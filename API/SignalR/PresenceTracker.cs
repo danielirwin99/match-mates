@@ -5,8 +5,9 @@ namespace API.SignalR
         // Takes in keys --> Username, List of Connection Id's from the username
         private static readonly Dictionary<string, List<string>> OnlineUsers = new Dictionary<string, List<string>>();
 
-        public Task UserConnected(string username, string connectionId)
+        public Task<bool> UserConnected(string username, string connectionId)
         {
+            bool isOnline = false;
             // Lock --> Stops multiple users accessing the dictionary at one time
             lock (OnlineUsers)
             {
@@ -20,17 +21,19 @@ namespace API.SignalR
                 // If there is no key add them to the list
                 {
                     OnlineUsers.Add(username, new List<string> { connectionId });
+                    isOnline = true;
                 }
             }
-            return Task.CompletedTask;
+            return Task.FromResult(isOnline);
         }
 
-        public Task UserDisconnected(string username, string connectionId)
+        public Task<bool> UserDisconnected(string username, string connectionId)
         {
+            bool isOffline = false;
             lock (OnlineUsers)
             {
                 // If the username is not there in our dictionary key
-                if (!OnlineUsers.ContainsKey(username)) return Task.CompletedTask;
+                if (!OnlineUsers.ContainsKey(username)) return Task.FromResult(isOffline);
 
                 // If it makes it passed the line above (safety check)
                 OnlineUsers[username].Remove(connectionId);
@@ -39,10 +42,11 @@ namespace API.SignalR
                 if (OnlineUsers[username].Count == 0)
                 {
                     OnlineUsers.Remove(username);
+                    isOffline = true;
                 }
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(isOffline);
         }
 
         public Task<string[]> GetOnlineUsers()
@@ -59,5 +63,17 @@ namespace API.SignalR
             return Task.FromResult(onlineUsers);
         }
 
+        public static Task<List<string>> GetConnectionsForUser(string username)
+        {
+            List<string> connectionIds;
+            // Lock --> Stops multiple users accessing the dictionary at one time
+            lock (OnlineUsers)
+            {
+                // This returns a list of connections for that user
+                connectionIds = OnlineUsers.GetValueOrDefault(username);
+            }
+
+            return Task.FromResult(connectionIds);
+        }
     }
 }
