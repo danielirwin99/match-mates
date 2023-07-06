@@ -6,6 +6,7 @@ import { Message } from '../_models/message';
 import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { User } from '../_models/user';
 import { BehaviorSubject, take } from 'rxjs';
+import { Group } from '../_models/group';
 
 @Injectable({
   providedIn: 'root',
@@ -51,6 +52,23 @@ export class MessageService {
         },
       });
     });
+
+    // If the user joins our group
+    this.hubConnection.on('UpdatedGroup', (group: Group) => {
+      // Looking for the person that is joining the group
+      if (group.connections.some((x) => x.username === otherUsername)) {
+        this.messageThread$.pipe(take(1)).subscribe({
+          next: (messages) => {
+            messages.forEach((message) => {
+              if (!message.dateRead) {
+                message.dateRead = new Date(Date.now());
+              }``
+            });
+            this.messageThreadSource.next([...messages]);
+          },
+        });
+      }
+    });
   }
 
   // Stops the Hub Connection
@@ -84,7 +102,8 @@ export class MessageService {
   // This returns a Promise so we need to make it async
   async sendMessage(username: string, content: string) {
     // "SendMessage" --> What we called the function in our API
-    return this.hubConnection?.invoke('SendMessage', {
+    return this.hubConnection
+      ?.invoke('SendMessage', {
         // Passing through the username and the content
         recipientUsername: username,
         content,

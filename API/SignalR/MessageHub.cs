@@ -44,6 +44,12 @@ namespace API.SignalR
             // Adds them to the connection
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
+            // We get a group back from this now
+            var group = await AddToGroup(groupName);
+
+            // The client that receives the new group uses this method to update the list of members
+            await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
+
             // Adds the groupName of the two
             await AddToGroup(groupName);
 
@@ -51,12 +57,15 @@ namespace API.SignalR
             var messages = await _messageRepository.GetMessageThread(Context.User.GetUsername(), otherUser);
 
             // Receiving the messages from SignalR instead of an API Call --> Pass through the messages
-            await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+            await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
         }
 
         public async override Task OnDisconnectedAsync(Exception exception)
         {
-            await RemoveFromMessageGroup();
+            var group = await RemoveFromMessageGroup();
+
+            // Updating the group at any given time
+            await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -135,7 +144,7 @@ namespace API.SignalR
             return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
         }
 
-        private async Task<bool> AddToGroup(string groupName)
+        private async Task<Group> AddToGroup(string groupName)
         {
             // Accessing the group
             var group = await _messageRepository.GetMessageGroup(groupName);
@@ -154,20 +163,29 @@ namespace API.SignalR
             group.Connections.Add(connection);
 
             // Saves it to the repo
-            return await _messageRepository.SaveAllAsync();
+            if (await _messageRepository.SaveAllAsync()) return group;
+
+            // To seize the execution if it returns incorrectly
+            throw new HubException("Failed to add to group");
         }
 
         // Removing them from the group and NOT SIGNALR
-        private async Task RemoveFromMessageGroup()
+        private async Task<Group> RemoveFromMessageGroup()
         {
-            // Getting our connection
-            var connection = await _messageRepository.GetConnection(Context.ConnectionId);
+            // Getting the group we are interested in (passing it through)
+            var group = await _messageRepository.GetGroupForConnection(Context.ConnectionId);
+
+            // Getting the connection from the group
+            var connection = group.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
 
             // Removes it
             _messageRepository.RemoveConnection(connection);
 
             // Saves the new information after removing it
-            await _messageRepository.SaveAllAsync();
+            if (await _messageRepository.SaveAllAsync()) return group;
+
+            // If the line above does not work
+            throw new HubException("Failed to remove from group");
         }
     }
 }
